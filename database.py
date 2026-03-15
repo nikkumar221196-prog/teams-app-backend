@@ -36,6 +36,7 @@ def init_db():
                 name TEXT NOT NULL,
                 organization TEXT NOT NULL,
                 created_at TEXT NOT NULL,
+                last_seen TEXT,
                 UNIQUE(name, organization)
             )
         """)
@@ -70,10 +71,19 @@ def get_users_by_org(organization: str):
     with get_db() as conn:
         cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cursor.execute(
-            "SELECT name, organization, created_at FROM users WHERE organization = %s",
+            "SELECT name, organization, created_at, last_seen FROM users WHERE organization = %s",
             (organization,)
         )
         return [dict(row) for row in cursor.fetchall()]
+
+def update_last_seen(name: str, organization: str, last_seen: str):
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE users SET last_seen = %s WHERE name = %s AND organization = %s",
+            (last_seen, name, organization)
+        )
+        return cursor.rowcount > 0
 
 def add_message(from_user: str, to_user: str, organization: str, text: str, attachment: str = None):
     with get_db() as conn:

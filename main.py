@@ -47,11 +47,19 @@ async def connect(sid, environ):
 @sio.event
 async def disconnect(sid):
     print(f"Client disconnected: {sid}")
-    # Find and remove from active users
+    import datetime
+    
+    # Find and remove from active users, but update last_seen
+    disconnected_user = None
     disconnected_org = None
     for name, data in list(active_users.items()):
         if data.get("sid") == sid:
+            disconnected_user = name
             disconnected_org = data.get("organization")
+            # Update last seen in database before removing
+            user_name = data.get("name")
+            if user_name and disconnected_org:
+                database.update_last_seen(user_name, disconnected_org, datetime.datetime.utcnow().isoformat())
             del active_users[name]
             break
     
