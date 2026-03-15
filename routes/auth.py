@@ -10,9 +10,8 @@ class UserLogin(BaseModel):
 
 @router.post("/login")
 def login(user: UserLogin):
-    # Case-insensitive: convert to lowercase for storage/comparison
-    name = user.name.strip().lower()
-    organization = user.organization.strip().lower()
+    name = user.name.strip()
+    organization = user.organization.strip()
     
     if not name:
         return {"error": "Name is required"}
