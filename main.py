@@ -64,8 +64,9 @@ async def disconnect(sid):
 
 @sio.event
 async def join(sid, data):
-    name = data.get("name")
-    organization = data.get("organization")
+    # Case-insensitive: convert to lowercase
+    name = data.get("name", "").strip().lower()
+    organization = data.get("organization", "").strip().lower()
     active_users[f"{name}@{organization}"] = {
         "sid": sid, 
         "name": name, 
