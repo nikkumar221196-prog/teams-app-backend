@@ -66,9 +66,12 @@ async def disconnect(sid):
     # Notify remaining users in the same organization
     if disconnected_org:
         org_users = [u for u in active_users.values() if u.get("organization") == disconnected_org]
-        for user_key, user_data in active_users.items():
-            if user_data.get("organization") == disconnected_org:
-                await sio.emit("users_update", org_users, to=user_data["sid"])
+        # Create a list of user_data to avoid dictionary iteration issues
+        users_to_notify = [user_data for user_key, user_data in active_users.items() 
+                          if user_data.get("organization") == disconnected_org]
+        
+        for user_data in users_to_notify:
+            await sio.emit("users_update", org_users, to=user_data["sid"])
 
 @sio.event
 async def join(sid, data):
@@ -85,10 +88,12 @@ async def join(sid, data):
     # Send users update to ALL users in the same organization
     org_users = [u for u in active_users.values() if u.get("organization") == organization]
     
-    # Broadcast to all users in this organization
-    for user_key, user_data in active_users.items():
-        if user_data.get("organization") == organization:
-            await sio.emit("users_update", org_users, to=user_data["sid"])
+    # Create a list to avoid dictionary iteration issues
+    users_to_notify = [user_data for user_key, user_data in active_users.items() 
+                      if user_data.get("organization") == organization]
+    
+    for user_data in users_to_notify:
+        await sio.emit("users_update", org_users, to=user_data["sid"])
 
 @sio.event
 async def send_message(sid, data):
